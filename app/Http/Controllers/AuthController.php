@@ -103,7 +103,7 @@ class AuthController extends Controller
 
     public function resetPassword($token)
     {
-        $user = Users::where('reset_token', $token)->first();
+        $user = Users::where('  ', $token)->first();
 
         if ($user) {
             $sysprofile = SysProfile::select('systitle', 'syslogo')->first();

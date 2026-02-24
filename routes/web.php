@@ -117,10 +117,11 @@ Route::get('/reservasi/riwayat', function () {
 // API endpoints for reservation chain filter
 Route::prefix('api/reservation')->group(function () {
     $ctrl = \App\Http\Controllers\Api\ReservationApiController::class;
+    Route::get('services', [$ctrl, 'getServices']);
+    Route::get('doctors-by-service/{branchId}/{serviceId}', [$ctrl, 'getDoctorsByService']); // baru
     Route::get('doctors/{branchId}', [$ctrl, 'getDoctorsByBranch']);
     Route::get('dates/{branchId}/{doctorId}', [$ctrl, 'getAvailableDates']);
     Route::get('slots/{branchId}/{doctorId}/{date}', [$ctrl, 'getTimeSlots']);
-    Route::get('services', [$ctrl, 'getServices']);
 });
 
 
