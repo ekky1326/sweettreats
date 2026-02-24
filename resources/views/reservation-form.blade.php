@@ -65,7 +65,7 @@
         .chain-section.visible { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* SERVICE PILLS (step 2 - pilih perawatan) */
+        /* SERVICE CARDS */
         .services-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .service-select-card { position: relative; }
         .service-select-card input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; }
@@ -78,13 +78,19 @@
         .service-name { display: block; font-size: 0.85rem; font-weight: 600; color: #461500; }
         .service-meta { display: flex; gap: 10px; margin-top: 4px; font-size: 0.72rem; color: #8b7a6b; }
 
-        /* DATE PILLS */
-.date-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-height: 280px; overflow-y: auto; padding-right: 4px; }        .date-pill { padding: 12px 18px; border: 2px solid rgba(70,21,0,0.1); border-radius: 14px; background: #fffaf5; cursor: pointer; transition: all 0.3s; text-align: center; min-width: 120px; }
-        .date-pill:hover { border-color: #461500; background: rgba(70,21,0,0.03); }
-        .date-pill.selected { border-color: #461500; background: linear-gradient(135deg, #461500, #6b2400); color: #fff; }
-        .date-pill .date-day { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; opacity: 0.7; }
-        .date-pill .date-num { font-size: 1rem; font-weight: 800; }
-        .date-pill.selected .date-day, .date-pill.selected .date-num { color: #fff; opacity: 1; }
+        /* MONTH NAVIGATION & DATE PILLS */
+        .date-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
+        .month-nav { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; padding: 12px 16px; background: #fff; border-radius: 16px; border: 1px solid rgba(70,21,0,0.06); box-shadow: 0 4px 12px rgba(70,21,0,0.02); }
+        .month-nav .month-label { font-size: 1.05rem; font-weight: 800; color: #461500; }
+        .month-nav button { background: #fffaf5; border: 1px solid rgba(70,21,0,0.1); border-radius: 10px; width: 36px; height: 36px; cursor: pointer; color: #461500; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        .month-nav button:hover:not(:disabled) { background: #461500; color: #fff; border-color: #461500; transform: scale(1.05); }
+        .month-nav button:disabled { opacity: 0.3; cursor: not-allowed; background: transparent; border-color: transparent; }
+        .date-pill { padding: 14px 10px; border: 2px solid rgba(70,21,0,0.08); border-radius: 14px; background: #fff; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+        .date-pill:hover { border-color: #461500; background: #fffaf5; transform: translateY(-3px); box-shadow: 0 6px 16px rgba(70,21,0,0.06); }
+        .date-pill.selected { border-color: #461500; background: linear-gradient(135deg, #461500, #8b3a00); color: #fff; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(70,21,0,0.2); }
+        .date-pill .date-day { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #8b7a6b; transition: all 0.3s; }
+        .date-pill .date-num { font-size: 1.1rem; font-weight: 800; color: #461500; line-height: 1.2; transition: all 0.3s; }
+        .date-pill.selected .date-day, .date-pill.selected .date-num { color: #fff; }
 
         /* TIME SLOTS */
         .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
@@ -158,7 +164,7 @@
             .steps { flex-wrap: wrap; }
             .step span { display: none; }
             .slots-grid { grid-template-columns: repeat(3, 1fr); }
-            .date-pill { min-width: 95px; padding: 10px 12px; }
+            .date-pill { min-width: unset; padding: 12px 8px; }
             .modal-body, .modal-header, .modal-footer { padding-left: 20px; padding-right: 20px; }
         }
     </style>
@@ -166,7 +172,6 @@
 
 <body>
 
-    <!-- NAVBAR -->
     <nav class="navbar">
         <div class="navbar-inner">
             <a href="{{ route('home') }}" class="navbar-brand">
@@ -179,7 +184,6 @@
         </div>
     </nav>
 
-    <!-- FORM -->
     <section class="form-section">
         <div class="container">
 
@@ -191,7 +195,6 @@
 
             <div class="form-card">
 
-                <!-- Step Indicators -->
                 <div class="steps">
                     <div class="step active" data-step="1">
                         <span class="step-num">1</span><span>Cabang</span>
@@ -231,7 +234,6 @@
                 <form method="POST" action="{{ route('landing.reservation.store') }}" id="reservationForm">
                     @csrf
 
-                    <!--Cabang -->
                     <div class="form-group">
                         <label>Pilih Cabang <span class="required">*</span></label>
                         <select name="raw_branch_id" id="branchSelect" class="form-control" required>
@@ -245,13 +247,10 @@
                         </select>
                     </div>
 
-                    <!--Perawatan (chain dari Cabang)-->
                     <div class="chain-section" id="serviceSection">
                         <div class="form-group">
                             <label>Pilih Perawatan <span class="required">*</span></label>
                             <div id="servicesSelectGrid" class="services-select-grid"></div>
-                            {{-- Hidden input untuk kirim ke server --}}
-                            {{-- Services akan dikirim sebagai services[] --}}
                         </div>
                         <div class="duration-summary" id="durationSummary">
                             <div class="summary-item">
@@ -265,7 +264,6 @@
                         </div>
                     </div>
 
-                    <!--Dokter (chain dari Perawatan + Cabang)-->
                     <div class="chain-section" id="doctorSection">
                         <div class="form-group">
                             <label>Pilih Dokter <span class="required">*</span></label>
@@ -275,7 +273,6 @@
                         </div>
                     </div>
 
-                    <!--Tanggal (chain dari Dokter)-->
                     <div class="chain-section" id="dateSection">
                         <div class="form-group">
                             <label>Pilih Tanggal <span class="required">*</span></label>
@@ -284,7 +281,6 @@
                         </div>
                     </div>
 
-                    <!--Slot Waktu (chain dari Tanggal)-->
                     <div class="chain-section" id="slotSection">
                         <div class="form-group">
                             <label>Jadwal <span class="required">*</span></label>
@@ -293,7 +289,6 @@
                         </div>
                     </div>
 
-                    <!--Data Diri-->
                     <div class="chain-section" id="customerSection" style="margin-top:24px">
                         <div class="form-row">
                             <div class="form-group">
@@ -329,7 +324,6 @@
         </div>
     </section>
 
-    <!-- PREVIEW MODAL -->
     <div class="modal-overlay" id="previewModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -350,11 +344,12 @@
     <script>
         $(function () {
             const BASE = '/api/reservation';
-            let selectedDate = null;
-            let selectedTime = null;
-            let servicesData   = []; // master data service dari API
+            let selectedDate     = null;
+            let selectedTime     = null;
+            let servicesData     = [];
+            let allDates         = [];      
+            let currentMonthIndex = 0;      
 
-            // ─── Cookie helpers ───
             function setCookie(name, value, days) {
                 const d = new Date();
                 d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -365,13 +360,9 @@
                 return v ? decodeURIComponent(v.pop()) : '';
             }
 
-            // Auto-fill nama & HP dari cookie
-            const savedName = getCookie('st_name');
-            const savedPhone = getCookie('st_phone');
-            if (savedName)  $('#nameInput').val(savedName);
-            if (savedPhone) $('#phoneInput').val(savedPhone);
+            if (getCookie('st_name'))  $('#nameInput').val(getCookie('st_name'));
+            if (getCookie('st_phone')) $('#phoneInput').val(getCookie('st_phone'));
 
-            // Step indicator helper
             function setStep(num) {
                 $('.step').each(function () {
                     const s = parseInt($(this).data('step'));
@@ -381,51 +372,86 @@
                 });
             }
 
-            //Update durasi summary setelah slot dipilih
             function updateDurationSummary() {
-                let totalDuration = 0;
+                let total = 0;
                 $('.service-select-check:checked').each(function () {
-                    totalDuration += parseInt($(this).data('duration'));
+                    total += parseInt($(this).data('duration'));
                 });
-                if (totalDuration > 0 && selectedTime) {
-                    const parts   = selectedTime.split(':');
-                    const startMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
-                    const endMin   = startMin + totalDuration;
-                    const endH     = String(Math.floor(endMin / 60)).padStart(2, '0');
-                    const endM     = String(endMin % 60).padStart(2, '0');
-                    $('#totalDuration').text(totalDuration + ' menit');
-                    $('#endTime').text(endH + ':' + endM);
-                    $('#durationSummary').addClass('visible');
-                } else if (totalDuration > 0) {
-                    $('#totalDuration').text(totalDuration + ' menit');
+                if (total > 0) {
+                    $('#totalDuration').text(total + ' menit');
+                    if (selectedTime) {
+                        const parts = selectedTime.split(':');
+                        const endMin = parseInt(parts[0]) * 60 + parseInt(parts[1]) + total;
+                        $('#endTime').text(
+                            String(Math.floor(endMin / 60)).padStart(2,'0') + ':' +
+                            String(endMin % 60).padStart(2,'0')
+                        );
+                    }
                     $('#durationSummary').addClass('visible');
                 } else {
                     $('#durationSummary').removeClass('visible');
                 }
             }
 
-            //Reset downstream sections
             function resetFrom(section) {
-                const order = ['service', 'doctor', 'date', 'slot', 'customer'];
-                const idx   = order.indexOf(section);
+                const order = ['service','doctor','date','slot','customer'];
+                const idx = order.indexOf(section);
                 for (let i = idx; i < order.length; i++) {
                     const s = order[i];
                     $('#' + s + 'Section').removeClass('visible');
-                    if (s === 'service')  { $('#servicesSelectGrid').empty(); }
-                    if (s === 'doctor')   { $('#doctorSelect').html('<option value="">-- Pilih Dokter --</option>'); }
-                    if (s === 'date')     { $('#dateGrid').empty(); $('#reservationDate').val(''); selectedDate = null; }
-                    if (s === 'slot')     { $('#slotsGrid').empty(); $('#reservationTime').val(''); selectedTime = null; }
-                    if (s === 'customer') {}
+                    if (s === 'service') { $('#servicesSelectGrid').empty(); }
+                    if (s === 'doctor')  { $('#doctorSelect').html('<option value="">-- Pilih Dokter --</option>'); }
+                    if (s === 'date')    { $('#dateGrid').empty(); $('#reservationDate').val(''); selectedDate = null; allDates = []; }
+                    if (s === 'slot')    { $('#slotsGrid').empty(); $('#reservationTime').val(''); selectedTime = null; }
                 }
                 $('#durationSummary').removeClass('visible');
                 $('#previewBtn').prop('disabled', true);
             }
 
-            // Pilih Cabang → Load Perawatan
+            function renderMonthDates() {
+                const monthGroups = {};
+                allDates.forEach(function (d) {
+                    const key = d.date.substring(0, 7); 
+                    if (!monthGroups[key]) monthGroups[key] = [];
+                    monthGroups[key].push(d);
+                });
+
+                const monthKeys = Object.keys(monthGroups).sort();
+                if (monthKeys.length === 0) return;
+
+                if (currentMonthIndex >= monthKeys.length) currentMonthIndex = monthKeys.length - 1;
+                if (currentMonthIndex < 0) currentMonthIndex = 0;
+
+                const currentKey = monthKeys[currentMonthIndex];
+                const dates = monthGroups[currentKey];
+
+                const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+                const [year, month] = currentKey.split('-');
+                const monthLabel = bulan[parseInt(month) - 1] + ' ' + year;
+
+                let html = '<div class="month-nav">';
+                html += '<button id="prevMonth" ' + (currentMonthIndex === 0 ? 'disabled' : '') + '><i class="fa-solid fa-chevron-left"></i></button>';
+                html += '<span class="month-label">' + monthLabel + '</span>';
+                html += '<button id="nextMonth" ' + (currentMonthIndex === monthKeys.length - 1 ? 'disabled' : '') + '><i class="fa-solid fa-chevron-right"></i></button>';
+                html += '</div>';
+
+                dates.forEach(function (d) {
+                    const parts = d.label.split(', ');
+                    html += '<div class="date-pill" data-date="' + d.date + '" data-label="' + d.label + '">';
+                    html += '<div class="date-day">' + parts[0] + '</div>';
+                    html += '<div class="date-num">' + parts[1] + '</div>';
+                    html += '</div>';
+                });
+
+                $('#dateGrid').html(html);
+
+                $('#prevMonth').on('click', function () { currentMonthIndex--; renderMonthDates(); });
+                $('#nextMonth').on('click', function () { currentMonthIndex++; renderMonthDates(); });
+            }
+
             $('#branchSelect').on('change', function () {
                 const branchId = $(this).val();
                 resetFrom('service');
-
                 if (!branchId) { setStep(1); return; }
 
                 setStep(2);
@@ -435,7 +461,7 @@
                 $.getJSON(BASE + '/services', function (data) {
                     servicesData = data;
                     if (data.length === 0) {
-                        $('#servicesSelectGrid').html('<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-tooth"></i>Tidak ada perawatan tersedia</div>');
+                        $('#servicesSelectGrid').html('<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-tooth"></i> Tidak ada perawatan tersedia</div>');
                         return;
                     }
                     let html = '';
@@ -444,34 +470,23 @@
                         html += '<input type="checkbox" name="services[]" value="' + svc.id + '" id="svc_' + svc.id + '" class="service-select-check" data-duration="' + svc.duration_minutes + '" data-name="' + svc.name + '">';
                         html += '<label for="svc_' + svc.id + '">';
                         html += '<span class="check-icon"><i class="fa-solid fa-check"></i></span>';
-                        html += '<span class="service-info">';
-                        html += '<span class="service-name">' + svc.name + '</span>';
-                        html += '<span class="service-meta"><span>' + svc.duration_minutes + ' menit</span></span>';
-                        html += '</span></label></div>';
+                        html += '<span class="service-info"><span class="service-name">' + svc.name + '</span>';
+                        html += '<span class="service-meta"><span>' + svc.duration_minutes + ' menit</span></span></span>';
+                        html += '</label></div>';
                     });
                     $('#servicesSelectGrid').html(html);
                 });
             });
 
-            // Pilih Perawatan → Load Dokter
-            // (trigger pas ada minimal 1 perawatan dipilih)
             $(document).on('change', '.service-select-check', function () {
                 const branchId    = $('#branchSelect').val();
                 const checkedSvcs = $('.service-select-check:checked');
 
-                // Reset doctor & downstream
                 resetFrom('doctor');
-
                 updateDurationSummary();
 
-                if (checkedSvcs.length === 0) {
-                    setStep(2);
-                    return;
-                }
+                if (checkedSvcs.length === 0) { setStep(2); return; }
 
-                // Ambil service pertama yang dipilih buat filter dokter
-                // (dokter harus bisa handle service ini; nantinya semua service
-                //  yang kepilih bakal disimpan di reservasi)
                 const firstServiceId = checkedSvcs.first().val();
 
                 setStep(3);
@@ -491,12 +506,11 @@
                 });
             });
 
-            // Pilih Dokter → Load Tanggal
             $('#doctorSelect').on('change', function () {
                 const doctorId = $(this).val();
                 const branchId = $('#branchSelect').val();
-                resetFrom('date');
 
+                resetFrom('date');
                 if (!doctorId) { setStep(3); return; }
 
                 setStep(4);
@@ -505,22 +519,15 @@
 
                 $.getJSON(BASE + '/dates/' + branchId + '/' + doctorId, function (data) {
                     if (data.length === 0) {
-                        $('#dateGrid').html('<div class="empty-state"><i class="fa-regular fa-calendar-xmark"></i>Tidak ada jadwal tersedia dalam 14 hari ke depan</div>');
+                        $('#dateGrid').html('<div class="empty-state"><i class="fa-regular fa-calendar-xmark"></i> Tidak ada jadwal tersedia dalam 3 bulan ke depan</div>');
                         return;
                     }
-                    let html = '';
-                    data.forEach(function (d) {
-                        const parts = d.label.split(', ');
-                        html += '<div class="date-pill" data-date="' + d.date + '" data-label="' + d.label + '">';
-                        html += '<div class="date-day">' + parts[0] + '</div>';
-                        html += '<div class="date-num">' + parts[1] + '</div>';
-                        html += '</div>';
-                    });
-                    $('#dateGrid').html(html);
+                    allDates = data;
+                    currentMonthIndex = 0;
+                    renderMonthDates();
                 });
             });
 
-            // Pilih Tanggal → Load Slot Waktu
             $(document).on('click', '.date-pill', function () {
                 const date     = $(this).data('date');
                 const branchId = $('#branchSelect').val();
@@ -537,7 +544,7 @@
 
                 $.getJSON(BASE + '/slots/' + branchId + '/' + doctorId + '/' + date, function (data) {
                     if (!data.slots || data.slots.length === 0) {
-                        $('#slotsGrid').html('<div class="empty-state"><i class="fa-regular fa-clock"></i>Tidak ada slot tersedia</div>');
+                        $('#slotsGrid').html('<div class="empty-state"><i class="fa-regular fa-clock"></i> Tidak ada slot tersedia</div>');
                         return;
                     }
                     let html = '';
@@ -555,22 +562,17 @@
                 });
             });
 
-            // Pilih Slot → Tampilkan Data Diri
             $(document).on('click', '.slot:not(.booked):not(.past)', function () {
                 $('.slot').removeClass('selected');
                 $(this).addClass('selected');
                 selectedTime = $(this).data('time');
                 $('#reservationTime').val(selectedTime);
-
-                // Update summary dengan end time
                 updateDurationSummary();
-
                 setStep(5);
                 $('#customerSection').addClass('visible');
                 checkSubmit();
             });
 
-            // Cek apakah preview button bisa aktif
             window.checkSubmit = function () {
                 const ok = $('.service-select-check:checked').length > 0
                     && $('#doctorSelect').val()
@@ -581,14 +583,11 @@
                     && $('#phoneInput').val().trim();
                 $('#previewBtn').prop('disabled', !ok);
             };
-
             $('#nameInput, #phoneInput').on('input', function () { checkSubmit(); });
 
-            //Auto-select cabang dari URL param (?cabang=xxx)
-            const urlParams = new URLSearchParams(window.location.search);
+            const urlParams   = new URLSearchParams(window.location.search);
             const cabangParam = urlParams.get('cabang');
             if (cabangParam) {
-                // Cari option yang nama-nya match (case-insensitive)
                 $('#branchSelect option').each(function () {
                     if ($(this).text().toLowerCase() === cabangParam.toLowerCase()) {
                         $(this).prop('selected', true);
@@ -597,9 +596,8 @@
                     }
                 });
             }
-        }); // end document ready
+        });
 
-        // PREVIEW MODAL
         function showPreview() {
             const branchText = $('#branchSelect option:selected').text();
             const doctorText = $('#doctorSelect option:selected').text();
@@ -614,7 +612,7 @@
                 const n = $(this).data('name');
                 const d = parseInt($(this).data('duration'));
                 totalDuration += d;
-                svcHtml += '<div class="svc-item"><div><span class="svc-name">' + n + '</span><br><span class="svc-detail">' + d + ' menit</span></div></div>';
+                svcHtml += '<div class="svc-item"><span class="svc-name">' + n + '</span><span class="svc-detail">' + d + ' menit</span></div>';
             });
 
             const parts  = timeText.split(':');
@@ -640,15 +638,13 @@
         function closePreview() { $('#previewModal').removeClass('show'); }
 
         function confirmSubmit() {
-            const name  = $('#nameInput').val();
-            const phone = $('#phoneInput').val();
             function setCookie(n, v, d) {
                 const dt = new Date();
                 dt.setTime(dt.getTime() + (d * 24 * 60 * 60 * 1000));
                 document.cookie = n + '=' + encodeURIComponent(v) + ';expires=' + dt.toUTCString() + ';path=/';
             }
-            setCookie('st_name', name, 30);
-            setCookie('st_phone', phone, 30);
+            setCookie('st_name', $('#nameInput').val(), 30);
+            setCookie('st_phone', $('#phoneInput').val(), 30);
             $('#reservationForm').submit();
         }
 

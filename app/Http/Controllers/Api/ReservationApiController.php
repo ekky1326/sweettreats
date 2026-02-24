@@ -63,7 +63,7 @@ class ReservationApiController extends Controller
         $dayNames = [1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis', 5 => 'Jumat', 6 => 'Sabtu', 7 => 'Minggu'];
         $dates = [];
 
-for ($i = 0; $i < 180; $i++) {
+for ($i = 0; $i < 90; $i++) {
               $date = Carbon::today()->addDays($i);
             $dayOfWeek = $date->dayOfWeekIso; // 1=Senin ... 7=Minggu
 
