@@ -16,13 +16,15 @@ class ReservationController extends Controller
     {
         $perPage = $this->perPage;
 
-        $reservations = RawCusReservation::with('branch', 'customer', 'doctor')
+    $reservations = RawCusReservation::with('branch', 'customer', 'doctor', 'services.docService', 'promo') //Tambah
             ->withCount('services')
             ->orderBy('date', 'desc')
             ->paginate($perPage);
 
         return view('crud.reservation.list', compact('reservations'));
     }
+
+    
 
     public function create()
     {
@@ -60,7 +62,7 @@ class ReservationController extends Controller
 
     public function edit($id)
     {
-        $reservation = RawCusReservation::with('branch', 'customer', 'doctor')->findOrFail($id);
+        $reservation = RawCusReservation::with('branch', 'customer', 'doctor', 'promo')->findOrFail($id);
         $branches = RawBranch::orderBy('name')->get();
         $customers = RawCustomer::orderBy('name')->get();
         $doctors = RawDoctor::orderBy('name')->get();
@@ -108,6 +110,29 @@ class ReservationController extends Controller
         return redirect()->route('rawreservation.edit', $id)->with('success', 'Reservasi berhasil diubah');
     }
 
+    //Update field status, follow_up_h_min_1, follow_up_h, follow_up_h_min_1_jam, keterangan_kehadiran secara inline (AJAX)
+    public function updateInline($id)
+    {
+        $reservation = RawCusReservation::findOrFail($id);
+
+        $field = request('field');
+        $value = request('value');
+
+        $allowed = ['status', 'follow_up_h_min_1', 'follow_up_h', 'follow_up_h_min_1_jam', 'keterangan_kehadiran'];
+
+        if (!in_array($field, $allowed)) {
+            return response()->json(['success' => false, 'message' => 'Field tidak valid'], 422);
+        }
+
+        $reservation->update([
+            $field      => $value,
+            'updated_at' => now(),
+            'updated_by' => session('user_id'),
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
     public function destroy($id)
     {
         $reservation = RawCusReservation::findOrFail($id);
@@ -118,6 +143,29 @@ class ReservationController extends Controller
 
         $reservation->delete();
         return redirect()->route('rawreservation')->with('success', 'Reservasi berhasil dihapus');
+    }
+
+    //komisi approve & pay (new)
+    public function commissionApprove($reservationId, $commissionId)
+    {
+        $commission = \App\Models\RawCommission::where('raw_cus_reservation_id', $reservationId)
+            ->findOrFail($commissionId);
+
+        $commission->update(['status' => 'approved']);
+
+        return redirect()->route('rawreservation.edit', $reservationId)
+            ->with('success', 'Komisi berhasil di-approve');
+    }
+
+    public function commissionPay($reservationId, $commissionId)
+    {
+        $commission = \App\Models\RawCommission::where('raw_cus_reservation_id', $reservationId)
+            ->findOrFail($commissionId);
+
+        $commission->update(['status' => 'paid']);
+
+        return redirect()->route('rawreservation.edit', $reservationId)
+            ->with('success', 'Komisi berhasil ditandai sebagai dibayar');
     }
 
     // === Reservation Service (Child CRUD) ===

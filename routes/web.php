@@ -15,6 +15,10 @@ use App\Http\Controllers\Crud\ReservasiCabangController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Middleware\AuthGuard;
 use App\Http\Middleware\IsLoggedIn;
+use App\Http\Controllers\Crud\AffiliateController; //new
+use App\Http\Controllers\Crud\PromoController; //new
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -41,14 +45,18 @@ Route::get('/reservasi', function () {
 
 Route::post('/reservasi', function () {
     request()->validate([
-        'name' => 'required|max:255',
-        'phone' => 'required|max:20',
-        'raw_doctor_id' => 'required|exists:raw_doctor,id',
-        'raw_branch_id' => 'required|exists:raw_branch,id',
-        'reservation_date' => 'required|date|after_or_equal:today',
-        'reservation_time' => 'required',
-        'services' => 'required|array|min:1',
-    ]);
+    'name'             => 'required|max:255',
+    'phone'            => 'required|max:20',
+    'jenis_kelamin'    => 'required|in:L,P', //new
+    'tanggal_lahir'    => 'required|date|before:today', //new
+    'email'            => 'required|email|max:100',  //new
+    'raw_doctor_id'    => 'required|exists:raw_doctor,id',
+    'raw_branch_id'    => 'required|exists:raw_branch,id',
+    'reservation_date' => 'required|date|after_or_equal:today',
+    'reservation_time' => 'required',
+    'services'         => 'required|array|min:1',
+    'promo_id' => 'nullable|exists:raw_promo,id', //new
+]);
 
     // Calculate total duration from selected services
     $totalDuration = 0;
@@ -67,21 +75,30 @@ Route::post('/reservasi', function () {
 
     // Find or create customer
     $customer = \App\Models\RawCustomer::firstOrCreate(
-        ['phone' => request('phone')],
-        ['name' => request('name'), 'source_app' => 'website', 'channel' => 'landing-page']
-    );
+    ['phone' => request('phone')],
+    [
+        'name'           => request('name'),
+        'email'          => request('email'),
+        'jenis_kelamin'  => request('jenis_kelamin'), //new
+        'tanggal_lahir'  => request('tanggal_lahir'), //new
+        'tanggal_daftar' => now()->toDateString(),
+        'source_app'     => 'website',
+        'channel'        => 'landing-page',
+    ]
+);
 
     // Create reservation with start and end hour
     $reservation = \App\Models\RawCusReservation::create([
         'raw_customer_id' => $customer->id,
-        'raw_doctor_id' => request('raw_doctor_id'),
-        'raw_branch_id' => request('raw_branch_id'),
-        'date' => request('reservation_date'),
-        'start_hour' => $startHour->format('H:i'),
-        'end_hour' => $endHour->format('H:i'),
-        'status' => 'pending',
-        'is_waiting' => false,
-        'created_at' => now(),
+        'raw_doctor_id'   => request('raw_doctor_id'),
+        'raw_branch_id'   => request('raw_branch_id'),
+        'raw_promo_id'    => request('promo_id') ?: null,  //new
+        'date'            => request('reservation_date'),
+        'start_hour'      => $startHour->format('H:i'),
+        'end_hour'        => $endHour->format('H:i'),
+        'status'          => 'pending',
+        'is_waiting'      => false,
+        'created_at'      => now(),
     ]);
 
     // Attach selected services
@@ -92,6 +109,38 @@ Route::post('/reservasi', function () {
             'raw_doc_service_id' => $docService->id,
         ]);
     }
+
+        // Insert journey: status reservasi masuk
+        \Illuminate\Support\Facades\DB::table('raw_cus_journey')->insert([
+            'id'              => \Illuminate\Support\Str::uuid()->toString(),
+            'raw_customer_id' => $customer->id,
+            'journey_label'   => 'Stat_Rsv',
+            'created_at'      => now(),
+        ]);
+
+        // Buat komisi kalo ada promo sama koc/afiiliate
+        if (request('promo_id')) {
+            $promo = \App\Models\RawPromo::with('affiliate')->find(request('promo_id'));
+            if ($promo && $promo->affiliate) {
+                // Hitung total harga dari services
+                $totalHarga = 0;
+                foreach ($serviceRecords as $svc) {
+                    $totalHarga += $svc->price ?? 0;
+                }
+
+                // Hitung komisi dari commis    sion_rate affiliate
+                $commissionAmount = round($totalHarga * ($promo->affiliate->commission_rate / 100), 2);
+
+                \Illuminate\Support\Facades\DB::table('raw_commission')->insert([
+                    'id'                      => \Illuminate\Support\Str::uuid()->toString(),
+                    'raw_affiliate_id'        => $promo->affiliate->id,
+                    'raw_cus_reservation_id'  => $reservation->id,
+                    'amount'                  => $commissionAmount,
+                    'status'                  => 'pending',
+                    'created_at'              => now(),
+                ]);
+            }
+        }
 
     return redirect('/reservasi/riwayat?phone=' . urlencode(request('phone')))
         ->with('success', 'Reservasi berhasil dibuat! Tim kami akan menghubungi kamu untuk konfirmasi.');
@@ -123,6 +172,9 @@ Route::prefix('api/reservation')->group(function () {
     Route::get('dates/{branchId}/{doctorId}', [$ctrl, 'getAvailableDates']);
     Route::get('slots/{branchId}/{doctorId}/{date}', [$ctrl, 'getTimeSlots']);
 });
+
+//new
+Route::get('api/promo/validate', [PromoController::class, 'validate_promo'])->name('api.promo.validate');
 
 
 Route::middleware([AuthGuard::class])->group(function () {
@@ -190,6 +242,8 @@ Route::middleware([AuthGuard::class])->group(function () {
     Route::post('rawdoctor/{doctorId}/schedule', [DoctorController::class, 'scheduleStore'])->name('rawdoctor.schedule.store');
     Route::put('rawdoctor/{doctorId}/schedule/{scheduleId}', [DoctorController::class, 'scheduleUpdate'])->name('rawdoctor.schedule.update');
     Route::delete('rawdoctor/{doctorId}/schedule/{scheduleId}', [DoctorController::class, 'scheduleDestroy'])->name('rawdoctor.schedule.destroy');
+    Route::post('rawdoctor/{doctorId}/services', [DoctorController::class, 'servicesUpdate'])->name('rawdoctor.services.update'); //new
+
 
     // CRUD - Reservation
     Route::get('rawreservation', [ReservationController::class, 'index'])->name('rawreservation');
@@ -198,6 +252,9 @@ Route::middleware([AuthGuard::class])->group(function () {
     Route::get('rawreservation/{id}', [ReservationController::class, 'edit'])->name('rawreservation.edit');
     Route::put('rawreservation/{id}', [ReservationController::class, 'update'])->name('rawreservation.update');
     Route::delete('rawreservation/{id}', [ReservationController::class, 'destroy'])->name('rawreservation.destroy');
+    Route::patch('rawreservation/{id}/inline', [ReservationController::class, 'updateInline'])->name('rawreservation.inline'); //new
+    Route::patch('rawreservation/{reservationId}/commission/{commissionId}/approve', [ReservationController::class, 'commissionApprove'])->name('rawreservation.commission.approve');//new
+    Route::patch('rawreservation/{reservationId}/commission/{commissionId}/pay', [ReservationController::class, 'commissionPay'])->name('rawreservation.commission.pay'); //new
 
     // CRUD - Reservation Service (nested under Reservation)
     Route::post('rawreservation/{reservationId}/service', [ReservationController::class, 'serviceStore'])->name('rawreservation.service.store');
@@ -218,6 +275,22 @@ Route::middleware([AuthGuard::class])->group(function () {
     Route::get('rawbranch/{id}', [BranchController::class, 'edit'])->name('rawbranch.edit');
     Route::put('rawbranch/{id}', [BranchController::class, 'update'])->name('rawbranch.update');
     Route::delete('rawbranch/{id}', [BranchController::class, 'destroy'])->name('rawbranch.destroy');
+
+    // CRUD - Affiliate new
+    Route::get('rawaffiliate', [AffiliateController::class, 'index'])->name('rawaffiliate');
+    Route::get('rawaffiliate/new', [AffiliateController::class, 'create'])->name('rawaffiliate.new');
+    Route::post('rawaffiliate/new', [AffiliateController::class, 'store'])->name('rawaffiliate.store');
+    Route::get('rawaffiliate/{id}', [AffiliateController::class, 'edit'])->name('rawaffiliate.edit');
+    Route::put('rawaffiliate/{id}', [AffiliateController::class, 'update'])->name('rawaffiliate.update');
+    Route::delete('rawaffiliate/{id}', [AffiliateController::class, 'destroy'])->name('rawaffiliate.destroy');
+
+    // CRUD - Promo new
+    Route::get('rawpromo', [PromoController::class, 'index'])->name('rawpromo');
+    Route::get('rawpromo/new', [PromoController::class, 'create'])->name('rawpromo.new');
+    Route::post('rawpromo/new', [PromoController::class, 'store'])->name('rawpromo.store');
+    Route::get('rawpromo/{id}', [PromoController::class, 'edit'])->name('rawpromo.edit');
+    Route::put('rawpromo/{id}', [PromoController::class, 'update'])->name('rawpromo.update');
+    Route::delete('rawpromo/{id}', [PromoController::class, 'destroy'])->name('rawpromo.destroy');
 
     // CRUD - Customer
     Route::get('rawcustomer', [CustomerController::class, 'index'])->name('rawcustomer');

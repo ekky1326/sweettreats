@@ -22,9 +22,15 @@ class RawCusReservation extends Model
         'end_hour',
         'status',
         'is_waiting',
+        'follow_up_h_min_1',      // tambah
+        'follow_up_h',             // tambah
+        'follow_up_h_min_1_jam',   // tambah
+        'keterangan_kehadiran',    // tambah
         'created_at',
         'updated_at',
         'updated_by',
+        'raw_promo_id',             //tambah
+        'total_reservasi',          // tambah
     ];
 
     public $incrementing = false;
@@ -55,6 +61,17 @@ class RawCusReservation extends Model
     public function services()
     {
         return $this->hasMany(RawCusResService::class, 'raw_cus_reservation_id', 'id');
+    }
+
+    //new
+    public function promo()
+    {
+        return $this->belongsTo(RawPromo::class, 'raw_promo_id', 'id');
+    }
+    //new   
+    public function commission()
+    {
+        return $this->hasOne(RawCommission::class, 'raw_cus_reservation_id', 'id');
     }
 
     // Status constants

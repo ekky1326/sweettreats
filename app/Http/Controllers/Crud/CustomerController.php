@@ -60,10 +60,16 @@ class CustomerController extends Controller
 
         $customer = RawCustomer::findOrFail($id);
         $customer->update([
-            'name' => request('name'),
-            'phone' => request('phone'),
-            'source_app' => request('source_app'),
-            'channel' => request('channel'),
+            'name'          => request('name'),
+            'phone'         => request('phone'),
+            'email'         => request('email'),
+            'jenis_kelamin' => request('jenis_kelamin'), //new
+            'tanggal_lahir' => request('tanggal_lahir'), //new
+            'nik'           => request('nik'), //new
+            'tempat_lahir'  => request('tempat_lahir'), //new
+            'alamat'        => request('alamat'), //new
+            'source_app'    => request('source_app'),
+            'channel'       => request('channel'),
         ]);
 
         return redirect()->route('rawcustomer')->with('success', 'Customer berhasil diubah');

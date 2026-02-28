@@ -49,8 +49,37 @@ class DoctorController extends Controller
             ->orderBy('start_hour')
             ->get();
 
-        return view('crud.doctor.edit', compact('doctor', 'schedules', 'branches'));
+            //new
+        $allServices     = \App\Models\RawDocService::orderBy('name')->get();
+        $doctorServiceIds = \App\Models\RawDoctorService::where('raw_doctor_id', $id)
+            ->pluck('raw_doc_service_id')
+            ->toArray();
+
+        return view('crud.doctor.edit', compact('doctor', 'schedules', 'branches', 'allServices', 'doctorServiceIds'));
     }
+
+    public function servicesUpdate($doctorId)
+{
+    $doctor = RawDoctor::findOrFail($doctorId);
+
+    // Hapus semua service lama
+    \App\Models\RawDoctorService::where('raw_doctor_id', $doctorId)->delete();
+
+    // Insert service baru yang diceklist
+    $services = request('services', []);
+    foreach ($services as $serviceId) {
+        \Illuminate\Support\Facades\DB::table('raw_doctor_service')->insert([
+            'id'                => \Illuminate\Support\Str::uuid()->toString(),
+            'raw_doctor_id'     => $doctorId,
+            'raw_doc_service_id'=> $serviceId,
+            'created_by'        => session('user_id'),
+            'created_at'        => now(),
+        ]);
+    }
+
+    return redirect()->route('rawdoctor.edit', $doctorId)
+        ->with('success', 'Service dokter berhasil diperbarui');
+}
 
     public function update($id)
     {

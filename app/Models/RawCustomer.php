@@ -13,13 +13,18 @@ class RawCustomer extends Model
     protected $table = 'raw_customer';
 
     protected $fillable = [
-        'id',
-        'source_app',
-        'name',
-        'phone',
-        'channel',
-    ];
-
+    'source_app',
+    'channel', 
+    'name',
+    'phone',
+    'email',           // tambah
+    'jenis_kelamin',   // tambah
+    'tanggal_lahir',   // tambah
+    'nik',             // tambah
+    'tempat_lahir',    // tambah
+    'alamat',          // tambah
+    'tanggal_daftar',  // tambah
+];
     public $incrementing = false;
     public $timestamps = false;
     protected $keyType = 'string';

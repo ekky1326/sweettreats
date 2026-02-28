@@ -70,6 +70,26 @@
                         "pid_path": null
                     },
                     {
+                        "id": "a12b8452-361b-4075-a39a-df4e1cae4b34",
+                        "pid": "452446c4-23cd-4964-a539-087010d8add3",
+                        "nama": "Affiliate",
+                        "icon": "dripicons-user",
+                        "urutan": 9,
+                        "urutan_path": ",02,09",
+                        "link": "rawaffiliate",
+                        "pid_path": null
+                    },
+                    {
+                        "id": "a12baa77-41f3-44ff-a733-0f6704390608",
+                        "pid": "452446c4-23cd-4964-a539-087010d8add3",
+                        "nama": "Promo",
+                        "icon": "dripicons-card",
+                        "urutan": 10,
+                        "urutan_path": ",02,10",
+                        "link": "rawpromo",
+                        "pid_path": null
+                    },
+                    {
                         "id": "c571eb60-d5e4-40d5-9eaf-b2a81eaca6e3",
                         "pid": "452446c4-23cd-4964-a539-087010d8add3",
                         "nama": "Branch",
@@ -130,6 +150,50 @@
                         "urutan_path": null,
                         "link": "setgroup",
                         "pid_path": "131ca369-c607-11ec-9240-809133ff6caa,32361898-c607-11ec-9240-809133ff6caa,d1c8f634-c607-11ec-9240-809133ff6caa"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "21708434-a6be-4261-8464-0efc9bb80043",
+        "pid": null,
+        "nama": "Dashboard",
+        "icon": "dripicons-meter",
+        "urutan": 1,
+        "urutan_path": null,
+        "link": "",
+        "pid_path": null,
+        "sub": [
+            {
+                "id": "dd697ca7-6d1a-4ee9-8187-226c52b9be17",
+                "pid": "21708434-a6be-4261-8464-0efc9bb80043",
+                "nama": "Menu",
+                "icon": "dripicons-list",
+                "urutan": 1,
+                "urutan_path": null,
+                "link": "",
+                "pid_path": "21708434-a6be-4261-8464-0efc9bb80043",
+                "child": [
+                    {
+                        "id": "d4e03a8f-3b36-4744-94f7-69081eab1c5f",
+                        "pid": "dd697ca7-6d1a-4ee9-8187-226c52b9be17",
+                        "nama": "Reservasi",
+                        "icon": "dripicons-calendar",
+                        "urutan": 2,
+                        "urutan_path": null,
+                        "link": "rawreservation",
+                        "pid_path": "21708434-a6be-4261-8464-0efc9bb80043,dd697ca7-6d1a-4ee9-8187-226c52b9be17"
+                    },
+                    {
+                        "id": "feb77a07-6551-4d63-82fb-122912a98192",
+                        "pid": "dd697ca7-6d1a-4ee9-8187-226c52b9be17",
+                        "nama": "Ringkasan",
+                        "icon": "dripicons-graph-bar",
+                        "urutan": 1,
+                        "urutan_path": null,
+                        "link": "dashboard",
+                        "pid_path": "21708434-a6be-4261-8464-0efc9bb80043,dd697ca7-6d1a-4ee9-8187-226c52b9be17"
                     }
                 ]
             }

@@ -258,6 +258,44 @@
             </div>
         </div>
     </div>
+
+    {{-- Doctor Services Section --}}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Perawatan yang Bisa Dilakukan</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ route('rawdoctor.services.update', $doctor->id) }}">
+                    @csrf
+                    <div class="row">
+                        @foreach ($allServices as $service)
+                            <div class="col-md-4 mb-2">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox"
+                                        class="custom-control-input"
+                                        id="svc_{{ $service->id }}"
+                                        name="services[]"
+                                        value="{{ $service->id }}"
+                                        {{ in_array($service->id, $doctorServiceIds) ? 'checked' : '' }}>
+                                    <label class="custom-control-label" for="svc_{{ $service->id }}">
+                                        <strong>{{ $service->name }}</strong>
+                                        <small class="text-muted d-block">{{ $service->duration_minutes }} menit</small>
+                                    </label>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <hr>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-save"></i> Simpan Perubahan Service
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('js')

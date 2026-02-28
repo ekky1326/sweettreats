@@ -13,6 +13,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
+    <!-- flatpicker buat tanggal lahir -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Montserrat', sans-serif; color: #3a2a1a; background: linear-gradient(165deg, #fffaf5 0%, #fef0e2 50%, #fce8d4 100%); min-height: 100vh; }
@@ -103,6 +108,21 @@
         .slot .slot-status { font-size: 0.65rem; font-weight: 600; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
         .slot.booked .slot-status { color: #c45200; }
         .slot.selected .slot-status { color: rgba(255,255,255,0.8); }
+
+        /*Button Cek Promo*/
+        .btn-check-promo {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 16px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-check-promo:hover { opacity: 0.85; }
+        .promo-valid { color: #16a34a; font-weight: 600; }
+        .promo-invalid { color: #dc2626; font-weight: 600; }
 
         /* DURATION SUMMARY */
         .duration-summary { background: linear-gradient(135deg,#fef5ed,#fef0e2); border: 1px solid rgba(70,21,0,0.08); border-radius: 14px; padding: 16px 20px; margin-top: 16px; display: none; }
@@ -290,34 +310,72 @@
                     </div>
 
                     <div class="chain-section" id="customerSection" style="margin-top:24px">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Nama Lengkap <span class="required">*</span></label>
-                                <input type="text" name="name" id="nameInput" class="form-control"
-                                    placeholder="Masukkan nama lengkap" required>
-                            </div>
-                            <div class="form-group">
-                                <label>No. WhatsApp <span class="required">*</span></label>
-                                <input type="text" name="phone" id="phoneInput" class="form-control"
-                                    placeholder="08xxxxxxxxxx" required>
-                            </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nama Lengkap <span class="required">*</span></label>
+                            <input type="text" name="name" id="nameInput" class="form-control"
+                                placeholder="Masukkan nama lengkap" required>
                         </div>
-
-                        <button type="button" class="btn-submit" id="previewBtn" disabled onclick="showPreview()">
-                            <i class="fa-solid fa-eye"></i> Preview Reservasi
-                        </button>
-
-                        <p class="form-note">
-                            <i class="fa-solid fa-shield-halved"></i>
-                            Tim kami akan menghubungi kamu untuk konfirmasi jadwal via WhatsApp
-                        </p>
-
-                        <div class="riwayat-link">
-                            <a href="/reservasi/riwayat">
-                                <i class="fa-solid fa-clock-rotate-left"></i> Lihat Riwayat Reservasi
-                            </a>
+                        <div class="form-group">
+                            <label>No. WhatsApp <span class="required">*</span></label>
+                            <input type="text" name="phone" id="phoneInput" class="form-control"
+                                placeholder="08xxxxxxxxxx" required>
                         </div>
                     </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email <span class="required">*</span></label>
+                            <input type="email" name="email" id="emailInput" class="form-control"
+                                placeholder="email@contoh.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Jenis Kelamin <span class="required">*</span></label>
+                            <select name="jenis_kelamin" id="jenisKelaminInput" class="form-control" required>
+                                <option value="">-- Pilih --</option>
+                                <option value="L">Laki-laki</option>
+                                <option value="P">Perempuan</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tanggal Lahir <span class="required">*</span></label>
+                            <input type="text" name="tanggal_lahir" id="tanggalLahirInput"
+                                class="form-control" placeholder="Pilih tanggal lahir"
+                                readonly required>
+                        </div>
+                        <div class="form-group">
+                            <label>Kode Promo <span style="color:#8b7a6b;font-weight:400;font-size:0.75rem;text-transform:none">(opsional)</span></label>
+                            <div style="display:flex;gap:8px;align-items:center">
+                                <input type="text" name="promo_code" id="promoInput" class="form-control"
+                                    placeholder="Contoh: EKKY50" style="text-transform:uppercase">
+                                <button type="button" id="checkPromoBtn" onclick="checkPromo()"
+                                    style="background:#461500;color:white;border:none;border-radius:8px;padding:14px 18px;font-size:0.85rem;font-family:'Montserrat',sans-serif;font-weight:700;cursor:pointer;white-space:nowrap">
+                                    Cek
+                                </button>
+                            </div>
+                            <div id="promoStatus" style="margin-top:6px;font-size:0.82rem"></div>
+                            <input type="hidden" name="promo_id" id="promoIdInput" value="">
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-submit" id="previewBtn" disabled onclick="showPreview()">
+                        <i class="fa-solid fa-eye"></i> Preview Reservasi
+                    </button>
+
+                    <p class="form-note">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        Tim kami akan menghubungi kamu untuk konfirmasi jadwal via WhatsApp
+                    </p>
+
+                    <div class="riwayat-link">
+                        <a href="/reservasi/riwayat">
+                            <i class="fa-solid fa-clock-rotate-left"></i> Lihat Riwayat Reservasi
+                        </a>
+                    </div>
+                </div>
 
                 </form>
             </div>
@@ -574,17 +632,35 @@
             });
 
             window.checkSubmit = function () {
+                const promoCode = $('#promoInput').val().trim();
+                const promoOk = promoCode === '' || (promoCode !== '' && promoFilled && promoValid);
+
                 const ok = $('.service-select-check:checked').length > 0
                     && $('#doctorSelect').val()
                     && $('#reservationDate').val()
                     && $('#reservationTime').val()
                     && $('#branchSelect').val()
                     && $('#nameInput').val().trim()
-                    && $('#phoneInput').val().trim();
-                $('#previewBtn').prop('disabled', !ok);
-            };
-            $('#nameInput, #phoneInput').on('input', function () { checkSubmit(); });
+                    && $('#phoneInput').val().trim()
+                    && $('#emailInput').val().trim()
+                    && $('#jenisKelaminInput').val()
+                    && $('#tanggalLahirInput').val()
+                    && promoOk;
 
+                $('#previewBtn').prop('disabled', !ok);
+
+                // Pesan warning kalau promo diisi tapi belum dicek / invalid
+                if (promoCode !== '' && !promoFilled) {
+                    $('#promoStatus').html('<span style="color:#f59e0b">⚠️ Klik "Cek" untuk validasi kode promo</span>');
+                } else if (promoCode !== '' && promoFilled && !promoValid) {
+                    // Udah dicek tapi invalid — preview tetap diblokir
+                    $('#previewBtn').prop('disabled', true);
+                }
+            };
+            $('#nameInput, #phoneInput, #emailInput').on('input', function () { checkSubmit(); }); //new
+            $('#jenisKelaminInput, #tanggalLahirInput').on('change', function () { checkSubmit(); }); //new
+
+            // url param preselect cabang
             const urlParams   = new URLSearchParams(window.location.search);
             const cabangParam = urlParams.get('cabang');
             if (cabangParam) {
@@ -598,6 +674,52 @@
             }
         });
 
+        //cek promo
+        let promoValid = false;
+        let promoFilled = false; // true jika user isi kode tapi belum dicek
+
+        window.checkPromo = function () {
+            const code = $('#promoInput').val().trim().toUpperCase();
+            if (!code) {
+                $('#promoStatus').html('<span style="color:#dc2626">⚠️ Masukkan kode promo terlebih dahulu</span>');
+                return;
+            }
+
+            $('#checkPromoBtn').text('Mengecek...').prop('disabled', true);
+
+            $.get('/api/promo/validate', { code: code }, function (res) {
+                if (res.valid) {
+                    promoValid = true;
+                    promoFilled = true;
+                    $('#promoIdInput').val(res.promo_id ?? '');
+                    $('#promoStatus').html('<span style="color:#16a34a;font-weight:600">✅ ' + res.message + '</span>');
+                } else {
+                    promoValid = false;
+                    promoFilled = true;
+                    $('#promoIdInput').val('');
+                    $('#promoStatus').html('<span style="color:#dc2626;font-weight:600">❌ ' + res.message + '</span>');
+                }
+                checkSubmit();
+            }).fail(function () {
+                promoValid = false;
+                $('#promoStatus').html('<span style="color:#dc2626">❌ Gagal mengecek promo</span>');
+                checkSubmit();
+            }).always(function () {
+                $('#checkPromoBtn').text('Cek').prop('disabled', false);
+            });
+        };
+
+        // Reset jika kode diubah setelah dicek
+        $('#promoInput').on('input', function () {
+            promoValid = false;
+            promoFilled = false;
+            $('#promoIdInput').val('');
+            $('#promoStatus').html('');
+            checkSubmit();
+        });
+
+        //New untuk preview tambah data dirinya
+
         function showPreview() {
             const branchText = $('#branchSelect option:selected').text();
             const doctorText = $('#doctorSelect option:selected').text();
@@ -605,6 +727,13 @@
             const timeText   = $('#reservationTime').val();
             const name       = $('#nameInput').val();
             const phone      = $('#phoneInput').val();
+            const email      = $('#emailInput').val(); //new
+            const jenisKel   = $('#jenisKelaminInput').val() === 'L' ? 'Laki-laki' : 'Perempuan'; //new
+            const tglLahir   = $('#tanggalLahirInput').val(); //new
+            const promoCode = $('#promoInput').val().trim().toUpperCase();
+            const promoMsg  = promoValid ? $('#promoStatus').text().replace('✅ ', '') : null;
+
+
 
             let svcHtml = '';
             let totalDuration = 0;
@@ -623,12 +752,18 @@
             let html = '';
             html += '<div class="preview-row"><span class="preview-label">Nama</span><span class="preview-value">' + name + '</span></div>';
             html += '<div class="preview-row"><span class="preview-label">WhatsApp</span><span class="preview-value">' + phone + '</span></div>';
+            if (email) html += '<div class="preview-row"><span class="preview-label">Email</span><span class="preview-value">' + email + '</span></div>';
+            html += '<div class="preview-row"><span class="preview-label">Jenis Kelamin</span><span class="preview-value">' + jenisKel + '</span></div>';
+            html += '<div class="preview-row"><span class="preview-label">Tanggal Lahir</span><span class="preview-value">' + tglLahir + '</span></div>';
+            if (promoCode && promoValid) {html += '<div class="preview-row"><span class="preview-label">Promo</span>' + '<span class="preview-value" style="color:#16a34a;font-weight:600">' + promoCode + ' — ' + promoMsg + '</span></div>';}
             html += '<div class="preview-row"><span class="preview-label">Cabang</span><span class="preview-value">' + branchText + '</span></div>';
             html += '<div class="preview-row"><span class="preview-label">Perawatan</span><span class="preview-value"></span></div>';
             html += '<div class="preview-services">' + svcHtml + '</div>';
             html += '<div class="preview-row"><span class="preview-label">Dokter</span><span class="preview-value">' + doctorText + '</span></div>';
             html += '<div class="preview-row"><span class="preview-label">Tanggal</span><span class="preview-value">' + dateText + '</span></div>';
             html += '<div class="preview-row"><span class="preview-label">Jam</span><span class="preview-value">' + timeText + ' — ' + endH + ':' + endM + '</span></div>';
+            if (promoCode && promoValid) {
+            html += '<div class="preview-row"><span class="preview-label">Promo</span><span class="preview-value" style="color:#16a34a">' + promoCode.toUpperCase() + ' — ' + (promoMsg || '') + '</span></div>';} //validasi promo
             html += '<div class="preview-total"><span>Total Durasi</span><span>' + totalDuration + ' menit</span></div>';
 
             $('#previewBody').html(html);
@@ -638,6 +773,11 @@
         function closePreview() { $('#previewModal').removeClass('show'); }
 
         function confirmSubmit() {
+            const btn = document.querySelector('.btn-modal.confirm');
+            if (btn.disabled) return;  // double click
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+
             function setCookie(n, v, d) {
                 const dt = new Date();
                 dt.setTime(dt.getTime() + (d * 24 * 60 * 60 * 1000));
@@ -650,6 +790,16 @@
 
         $(document).on('click', '.modal-overlay', function (e) {
             if (e.target === this) closePreview();
+        });
+
+        //Form tanggal lahir
+        flatpickr("#tanggalLahirInput", {
+            locale: "id",
+            dateFormat: "Y-m-d",
+            maxDate: "today",
+            yearRange: [1940, new Date().getFullYear() - 1],
+            disableMobile: true,
+            onChange: function() { checkSubmit(); }
         });
     </script>
 </body>

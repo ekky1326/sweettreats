@@ -222,6 +222,69 @@
         </div>
     </div>
 
+    {{-- Komisi --}}
+@if($reservation->commission)
+@php $comm = $reservation->commission; $commOpt = \App\Models\RawCommission::statusOptions()[$comm->status] ?? []; @endphp
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Komisi Affiliate</h4>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <tr>
+                        <td width="25%">Affiliate</td>
+                        <td>{{ $comm->affiliate->name ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Kode Promo</td>
+                        <td>{{ $reservation->promo->promo_code ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Jumlah Komisi</td>
+                        <td><strong>Rp {{ number_format($comm->amount, 0, ',', '.') }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Status Komisi</td>
+                        <td>
+                            <span class="badge badge-{{ $commOpt['color'] ?? 'secondary' }}">
+                                {{ $commOpt['label'] ?? $comm->status }}
+                            </span>
+                        </td>
+                    </tr>
+                    @if($comm->status === 'pending')
+                    <tr>
+                        <td></td>
+                        <td>
+                            <form method="POST" action="{{ route('rawreservation.commission.approve', [$reservation->id, $comm->id]) }}">
+                                @csrf @method('PATCH')
+                                <button class="btn btn-primary btn-sm" type="submit">
+                                    ✅ Approve Komisi
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    @elseif($comm->status === 'approved')
+                    <tr>
+                        <td></td>
+                        <td>
+                            <form method="POST" action="{{ route('rawreservation.commission.pay', [$reservation->id, $comm->id]) }}">
+                                @csrf @method('PATCH')
+                                <button class="btn btn-success btn-sm" type="submit">
+                                    💰 Tandai Sudah Dibayar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    @endif
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
     {{-- Add Service Modal --}}
     <div class="modal fade" id="addServiceModal" tabindex="-1">
         <div class="modal-dialog">
